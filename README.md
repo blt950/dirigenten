@@ -1,7 +1,7 @@
 # Dirigenten
 INF5205 (Tangible) Dirigent
 
-# Setup
+# Setup 1/2
 
 ### OSX
 
@@ -17,9 +17,13 @@ Via @ThomasDeutsch on https://github.com/rwldrn/johnny-five/issues/48#issuecomme
 * npm --add-python-to-path install --global --production windows-build-tools
 * Install node-gyp npm install -g node-gyp
 
-# Running
+# Setup 2/2
 
 Execute `npm install` in terminal, this will install all required dependecies to the node_modules folder
+
+# Running
+
+`node dirigenten-server.js` in terminal
 
 # Links
 Johhny-Five: https://github.com/rwaldron/johnny-five/wiki/Getting-Started
