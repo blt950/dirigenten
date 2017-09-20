@@ -1,13 +1,13 @@
 # Dirigenten
 INF5205 (Tangible) Dirigent
 
-# Setup 1/2
+# Setup
 
 ### OSX
 
 * Install Node.js >= 0.10.x
 * Install Xcode
-* Install node-gyp npm install -g node-gyp
+* Install node-gyp `npm install -g node-gyp`
 
 ### Windows
 
@@ -17,13 +17,14 @@ Via @ThomasDeutsch on https://github.com/rwldrn/johnny-five/issues/48#issuecomme
 * npm --add-python-to-path install --global --production windows-build-tools
 * Install node-gyp npm install -g node-gyp
 
-# Setup 2/2
+### Both
 
 Execute `npm install` in terminal, this will install all required dependecies to the node_modules folder
 
 # Running
 
 `node dirigenten-server.js` in terminal
+_Remember to have uploaded firmware.ino to the Arduino_ 
 
 # Links
 Johhny-Five: https://github.com/rwaldron/johnny-five/wiki/Getting-Started
