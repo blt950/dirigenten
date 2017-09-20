@@ -24,6 +24,7 @@ Execute `npm install` in terminal, this will install all required dependecies to
 # Running
 
 `node dirigenten-server.js` in terminal
+_Remember to have uploaded firmware.ino to the Arduino_ 
 
 # Links
 Johhny-Five: https://github.com/rwaldron/johnny-five/wiki/Getting-Started
