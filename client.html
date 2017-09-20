@@ -36,6 +36,28 @@
 
 			// Audio Controller
 			var audioPlayer = $('#audioHTMLPlayer')[0];
+
+			function changeSong(url){
+
+				var oldPercent = 0.0;
+		        if(url == "music/waltz2/210.mp3"){
+
+		        	oldPercent = (audioPlayer.currentTime*100)/103;
+		        	audioPlayer.setAttribute('src', url);
+		        	audioPlayer.load();
+		        	audioPlayer.currentTime = (92*oldPercent)/100;
+
+		        } else {
+
+		        	oldPercent = (audioPlayer.currentTime*100)/92;
+		        	audioPlayer.setAttribute('src', url);
+		        	audioPlayer.load();
+		        	audioPlayer.currentTime = (103*oldPercent)/100;
+
+		        }
+
+		        audioPlayer.play();
+			}
 			
 
 			// Leap Controller input
@@ -60,5 +82,8 @@
 			});
 
 		</script>
+
+		<button onclick="changeSong('music/waltz2/210.mp3')">Change to 210</button>
+		<button onclick="changeSong('music/waltz2/185.mp3')">Change to 185</button>
 	</body>
 </html>
