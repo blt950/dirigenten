@@ -2,6 +2,8 @@
   <head>
     <title>Dumper - Leap</title>
     <script src="node_modules/leapjs/leap-0.6.4.min.js"></script>
+    <script src="node_modules/jquery/dist/jquery.min.js"></script>
+    <script src="node_modules/socket.io-client/dist/socket.io.js"></script>
     <script>
       console.log("LeapJS v" + Leap.version.full);
       var state = 'play';
@@ -40,6 +42,10 @@
 
           console.log(vol);
           setVol(vol);
+
+          $.post( "http://127.0.1.1:8000", { volume: vol } );
+
+
         }
 
 
@@ -81,13 +87,6 @@
         console.log("streamingStopped", deviceInfo);
       });
 
-      controller.on('deviceConnected', function() {
-        console.log("deviceConnected");
-      });
-      controller.on('deviceDisconnected', function() {
-        console.log("deviceDisconnected");
-      });
-
       // This event is always called after other frame events, and is ideal for rendering WebGL scenes.
       // The timestamp is from requestAnimationFrame and is when the pixels hit the screen.
       controller.on('frameEnd', function(timestamp){
@@ -98,6 +97,16 @@
       });
 
     </script>
+
+    
+    <script type="text/javascript">
+      var socket = io('http://localhost:8080');
+      socket.on('news', function (data) {
+        console.log(data);
+        socket.emit('my other event', { my: 'data' });
+      });
+    </script>
+          
 
   </head>
   <body>
