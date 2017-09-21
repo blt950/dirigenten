@@ -10,7 +10,12 @@
 		<h1>Dirigenten Interface</h1>
 
 		<!-- HTML Audio Output -->
-		<audio id="audioHTMLPlayer" width="320" height="176" controls>
+		<audio id="audioHTMLPlayer1" width="320" height="176" controls>
+			<source src="music/waltz2/185.mp3" type="audio/mp3">
+			Your browser does not support HTML5 audio.
+		</audio>
+		<br>
+		<audio id="audioHTMLPlayer2" width="320" height="176" controls>
 			<source src="music/waltz2/185.mp3" type="audio/mp3">
 			Your browser does not support HTML5 audio.
 		</audio>
@@ -35,28 +40,50 @@
 
 
 			// Audio Controller
-			var audioPlayer = $('#audioHTMLPlayer')[0];
+			var audioPlayer1 = $('#audioHTMLPlayer1')[0];
+			var audioPlayer2 = $('#audioHTMLPlayer2')[0];
+
+			var activePlayer = audioPlayer1;
+			var inactivePlayer = audioPlayer2;
+			var changeOffset = 0.115;
+
+			function changeActivePlayer(){
+				var temp = activePlayer;
+
+				activePlayer = inactivePlayer;
+				inactivePlayer = temp;
+			}
 
 			function changeSong(url){
 
 				var oldPercent = 0.0;
+				
 		        if(url == "music/waltz2/210.mp3"){
 
-		        	oldPercent = (audioPlayer.currentTime*100)/103;
-		        	audioPlayer.setAttribute('src', url);
-		        	audioPlayer.load();
-		        	audioPlayer.currentTime = (92*oldPercent)/100;
+		        	oldPercent = (activePlayer.currentTime*100)/103;
+		        	inactivePlayer.setAttribute('src', url);
+		        	inactivePlayer.load();
+		        	inactivePlayer.currentTime = (92*oldPercent)/100 + changeOffset;
 
 		        } else {
 
-		        	oldPercent = (audioPlayer.currentTime*100)/92;
-		        	audioPlayer.setAttribute('src', url);
-		        	audioPlayer.load();
-		        	audioPlayer.currentTime = (103*oldPercent)/100;
+		        	oldPercent = (activePlayer.currentTime*100)/92;
+		        	inactivePlayer.setAttribute('src', url);
+		        	inactivePlayer.load();
+		        	inactivePlayer.currentTime = (103*oldPercent)/100 + changeOffset;
 
 		        }
 
-		        audioPlayer.play();
+		        changeActivePlayer();
+
+		        // Cross fade the players and pause the inactive one.
+		        $(inactivePlayer).animate({volume: 0.0}, 10, function(){
+		        	inactivePlayer.pause();
+		        });
+		        
+		        activePlayer.play();
+		        $(activePlayer).animate({volume: 1.0}, 10);
+
 			}
 			
 
@@ -74,7 +101,7 @@
 					if(vol > 1.0){ vol = 1.0; }
 					if(vol < 0.1){ vol = 0.0; }
 
-					audioPlayer.volume = vol;
+					//activePlayer.volume = vol;
 					socket.emit('volumeUpdate', { data: vol }); // Send current volume to server
 
 				}
