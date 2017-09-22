@@ -13,8 +13,9 @@ console.log("Dirigenten Server Initialized");
 // ------------------------------------------------
 
 // Arduino
-var five = require("./node_modules/johnny-five/lib/johnny-five"),
-arduino = new five.Board();
+var five = require("./node_modules/johnny-five"),
+board = new five.Board();
+var pixel = require("./node_modules/node-pixel");
 
 // Sockets
 var app = require('http').createServer(handler)
@@ -31,7 +32,7 @@ function handler(req, res) {
 		}
 
 		res.writeHead(200);
-		res.end(data);
+		res.end(data);   
 	});
 }
 
@@ -39,10 +40,27 @@ function handler(req, res) {
 // ARDUINO CONTROLLER
 // ------------------------------------------------
 
+var strip = null;
 
-arduino.on("ready", function() {
+board.on("ready", function() {
+
 	var led = new five.Led(8);
 	led.strobe(250);
+	
+	strip = new pixel.Strip({
+		board: this,
+		controller: "FIRMATA",
+		strips: [ {pin: 6, length: 9}, ],
+		gamma: 2.8,
+	});
+
+	strip.on("ready", function(){
+
+		strip.color("red");
+		strip.show();
+
+	});
+
 });
 
 

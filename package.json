@@ -8,6 +8,7 @@
     "leapjs": "^0.6.4",
     "howler": "^2.0.4",
     "johnny-five": "^0.11.6",
-    "socket.io": "^2.0.3"
+    "socket.io": "^2.0.3",
+    "node-pixel": "^0.9.3"
   }
 }
