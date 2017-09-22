@@ -182,6 +182,7 @@
 					lastX = frame.hands[0].palmPosition[0];
 					lastZ = frame.hands[0].palmPosition[1];
 
+					// Change volume smoothly
 					if(!changingVol){
 						changingVol = true;
 						$(audioPlayer).animate({volume: calculatedVolume()}, 100, function(){
@@ -189,10 +190,15 @@
 						})
 					}
 					
-					//audioPlayer.volume = calculatedVolume();
+					// Set pitch on player
 					audioPlayer.playbackRate = calculatedPitch();
 
-					//socket.emit('volumeUpdate', { data: vol }); // Send current volume to server*/
+					// Send data to server
+					socket.emit('clientPackage', { 
+						volume: calculatedVolume(), 
+						pitch: calculatedPitch(), 
+						bpm: calculatedBPM()
+					});
 
 				} else {
 					timerCount = 0;
