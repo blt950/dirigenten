@@ -45,7 +45,6 @@
 
 			var activePlayer = audioPlayer1;
 			var inactivePlayer = audioPlayer2;
-			var changeOffset = 0.115;
 
 			function changeActivePlayer(){
 				var temp = activePlayer;
@@ -57,17 +56,19 @@
 			function changeSong(url){
 
 				var oldPercent = 0.0;
+				var changeOffset = 0.115;
+				var fadeTime = 75;
 				
 		        if(url == "music/waltz2/210.mp3"){
 
-		        	oldPercent = (activePlayer.currentTime*100)/103;
+		        	oldPercent = (activePlayer.currentTime*100)/activePlayer.duration;
 		        	inactivePlayer.setAttribute('src', url);
 		        	inactivePlayer.load();
 		        	inactivePlayer.currentTime = (92*oldPercent)/100 + changeOffset;
 
 		        } else {
 
-		        	oldPercent = (activePlayer.currentTime*100)/92;
+		        	oldPercent = (activePlayer.currentTime*100)/activePlayer.duration;
 		        	inactivePlayer.setAttribute('src', url);
 		        	inactivePlayer.load();
 		        	inactivePlayer.currentTime = (103*oldPercent)/100 + changeOffset;
@@ -76,13 +77,15 @@
 
 		        changeActivePlayer();
 
-		        // Cross fade the players and pause the inactive one.
-		        $(inactivePlayer).animate({volume: 0.0}, 10, function(){
+		        /*// Cross fade the players and pause the inactive one.
+		        $(inactivePlayer).animate({volume: 0.0}, 75, function(){
 		        	inactivePlayer.pause();
 		        });
 		        
 		        activePlayer.play();
-		        $(activePlayer).animate({volume: 1.0}, 10);
+		        $(activePlayer).animate({volume: 1.0}, 75);*/
+		        inactivePlayer.pause();
+		        activePlayer.play();
 
 			}
 			
