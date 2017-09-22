@@ -8,22 +8,13 @@ INF5205 (Tangible) Dirigent
 * Install Node.js >= 0.10.x
 * Install Xcode
 * Install node-gyp `npm install -g node-gyp`
-
-### Windows
-
-Via @ThomasDeutsch on https://github.com/rwldrn/johnny-five/issues/48#issuecomment-7696662
-
-* Install Node.js >= 0.10.x 32 bit (unless anyone can confirm success with 64 bit)
-* npm --add-python-to-path install --global --production windows-build-tools
-* Install node-gyp npm install -g node-gyp
-
-### Both
-
-Execute `npm install` in terminal, this will install all required dependecies to the node_modules folder
+* Install johnny-five interchange `npm install -g nodebots-interchange` (for using different FIRMATA)
+* Execute `npm install` in terminal, this will install all required dependecies to the node_modules folder
+* Execute `interchange install --interactive` to install NeoPixel firmware to Arduino.
 
 # Running
 
-`node dirigenten-server.js` in terminal
+`node server.js` in terminal
 _Remember to have uploaded firmware.ino to the Arduino_ 
 
 # Links
