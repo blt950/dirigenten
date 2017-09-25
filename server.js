@@ -47,12 +47,21 @@ var fps = 5;
 board.on("ready", function() {
 
 	var led = new five.Led(8);
-	led.strobe(250);
+	led.strobe(2000);
+
+	var proximity = new five.Proximity({
+		controller: "MB1000",
+		pin: "A1"
+	});
+
+	proximity.on("data", function() {
+		console.log("cm: ", this.cm);
+	});
 	
     // setup the node-pixel strip.
     strip = new pixel.Strip({
         data: 6,
-        length: 30, // number of pixels in the strip.
+        length: 28, // number of pixels in the strip.
         board: this,
         controller: "FIRMATA"
     });
