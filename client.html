@@ -85,6 +85,16 @@
 				return volume;
 			}
 
+			function calculatedAverage(){
+				var total = 0;
+
+				for (i = 0; i < positionSamples.length; i++){
+					total = total + positionSamples[i];
+				}
+
+				return total / positionSamples.length;
+			}
+
 			function calculatedBPM(){
 				var total = 0;
 
@@ -197,7 +207,8 @@
 					socket.emit('clientPackage', { 
 						volume: calculatedVolume(), 
 						pitch: calculatedPitch(), 
-						bpm: calculatedBPM()
+						bpm: calculatedBPM(),
+						average: calculatedAverage()
 					});
 
 				} else {
