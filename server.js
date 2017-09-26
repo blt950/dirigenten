@@ -129,9 +129,13 @@ board.on("ready", function() {
 
 	strip.on("ready", function() {
 		console.log("Strip ready, let's go");
+		for(var i = 0; i < strip.length; i++) {
+				strip.pixel( i ).color("red");
+			}
+			strip.show();
 		//dynamicRainbow(fps);
-		stripBeat(1000);
-		updateLights();
+		//stripBeat(1000);
+		//updateLights();
 	});
 
 	function updateLights(){
