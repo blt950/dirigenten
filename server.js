@@ -122,7 +122,7 @@ board.on("ready", function() {
 	// setup the node-pixel strip.
 	strip = new pixel.Strip({
 		data: 6,
-		length: 5, // number of pixels in the strip.
+		length: 20, // number of pixels in the strip.
 		board: this,
 		controller: "FIRMATA"
 	});
