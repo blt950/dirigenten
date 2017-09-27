@@ -13,9 +13,9 @@ console.log("Dirigenten Server Initialized");
 // ------------------------------------------------
 
 // Arduino
-var five = require("./node_modules/johnny-five");
+var five = require("johnny-five");
 var board = new five.Board();
-var pixel = require("./node_modules/node-pixel");
+var pixel = require("node-pixel");
 
 // Sockets
 var app = require('http').createServer(handler);
@@ -41,46 +41,17 @@ function handler(req, res) {
 // ------------------------------------------------
 
 var strip = null;
-var fps = 10;
+var stripColor = [255,255,255];
+var beatNumber = 0;
 
 board.on("ready", function() {
 
-	// Status LED
-	var led = new five.Led(13);
-	led.strobe(2000);
+	// ============= SETUP =============
+	
+	// LED
+	var led = new five.Led(13); led.strobe(2000);
 
-	// Proximity Sensor
-	var proximity = new five.Proximity({
-		controller: "MB1010",
-		pin: "A1"
-	});
-
-	proximity.on("data", function() {
-		//console.log("cm: ", this.cm);
-	});
-
-
-	var beatNumber = 0;
-	function stripBeat(ms){
-
-		setTimeout(function(){
-
-			if(isEven(beatNumber)){
-				fade({r: 255, g: 0, b: 0}, {r: 0, g: 255, b: 0}, 500);
-			} else if(isOdd(beatNumber)){
-				fade({r: 0, g: 255, b: 0}, {r: 255, g: 0, b: 0}, 500);
-			}
-
-			console.log("beat " + beatNumber);
-
-			stripBeat(ms);
-			beatNumber = beatNumber + 1;
-
-		}, clientData.average);
-
-	}
-
-	// Setup the node-pixel strip.
+	// Strip
 	strip = new pixel.Strip({
 		data: 3,
 		length: 28, // number of pixels in the strip.
@@ -88,75 +59,43 @@ board.on("ready", function() {
 		controller: "FIRMATA"
 	});
 
-	strip.on("ready", function() {
-		console.log("Strip ready, let's go");
-		for(var i = 0; i < strip.length; i++) {
-				strip.pixel( i ).color("rgb(10,10,10)");
-			}
-		strip.pixel(10).color("red");
-		strip.show();
-		//dynamicRainbow(fps);
-		stripBeat(1000);
-		updateLights();
+
+	// Proximity
+	var proximity = new five.Proximity({
+		controller: "MB1010",
+		pin: "A1"
 	});
 
-	function updateLights(){
-		setInterval(function(){
-			for(var i = 0; i < strip.length; i++) {
-				strip.pixel( i ).color(c);
-			}
-			strip.pixel(10).color("blue");
-			strip.show();
-		}, 50)
-	}
+	// ============= LOOPS =============
+	
+	// Proximity Sensor
+	proximity.on("data", function() {
+		clientData.ranger = this.cm;
+	});
 
-	function dynamicRainbow( delay ){
-		var showColor;
-		var cwi = 0;
-		var foo = setInterval(function(){
-			if (++cwi > 255) {
-				cwi = 0;
-			}
+	// LED Strips
+	strip.on("ready", function() {
+		console.log("SERVER: LED Strip ready");
 
-			for(var i = 0; i < strip.length; i++) {
-				showColor = colorWheel( ( cwi+i+5 ) & 255 );
-				strip.pixel( i ).color( showColor );
-			}
-			strip.show();
-		}, 1000/delay);
-	}
-
-	function colorWheel( WheelPos ){
-		var r,g,b;
-		WheelPos = 255 - WheelPos;
-
-		if ( WheelPos < 85 ) {
-			r = 255 - WheelPos * 3;
-			g = 0;
-			b = WheelPos * 3;
-		} else if (WheelPos < 170) {
-			WheelPos -= 85;
-			r = 0;
-			g = WheelPos * 3;
-			b = 255 - WheelPos * 3;
-		} else {
-			WheelPos -= 170;
-			r = WheelPos * 3;
-			g = 255 - WheelPos * 3;
-			b = 0;
+		for(var i = 0; i < strip.length; i++) {
+			strip.pixel( i ).color("rgb(10,10,10)");
 		}
-		return "rgb(" + r +"," + g + "," + b + ")";
-	}
+		strip.show();
+
+		dynamicRainbow(10); // FPS Argument
+		//stripBeat(1000);
+		//updateLights();
+	});
 
 });
 
-function lerp(a,b,u) {
-	return (1-u) * a + u * b;
-};
+// ------------------------------------------------
+// LED FUNCTIONS
+// ------------------------------------------------
 
-var c = [255,255,255];
+// Beat fade
 
-function fade(start, end, duration) {
+function fadeStripColor(start, end, duration) {
 	var interval = 10;
 	var steps = duration/interval;
 	var step_u = 1.0/steps;
@@ -174,13 +113,83 @@ function fade(start, end, duration) {
 	if(g<0){g=0}
 	if(b<0){b=0}
 
-	c[0] = r;
-	c[1] = g;
-	c[2] = b;
-
-	console.log("fade", c);
+	stripColor[0] = r;
+	stripColor[1] = g;
+	stripColor[2] = b;
 
   }, interval);
+};
+
+function stripBeat(ms){
+	setTimeout(function(){
+
+		if(isEven(beatNumber)){
+			fadeStripColor({r: 255, g: 0, b: 0}, {r: 0, g: 255, b: 0}, 250);
+		} else if(isOdd(beatNumber)){
+			fadeStripColor({r: 0, g: 255, b: 0}, {r: 255, g: 0, b: 0}, 250);
+		}
+
+		stripBeat(ms);
+		beatNumber = beatNumber + 1;
+
+	}, clientData.average);
+}
+
+function updateLights(){
+	setInterval(function(){
+		for(var i = 0; i < strip.length; i++) {
+			strip.pixel( i ).color(stripColor);
+		}
+		strip.show();
+	}, 50)
+}
+
+// Rainbow
+
+function dynamicRainbow( delay ){
+	var showColor;
+	var cwi = 0;
+	var foo = setInterval(function(){
+		if (++cwi > 255) {
+			cwi = 0;
+		}
+
+		for(var i = 0; i < strip.length; i++) {
+			showColor = colorWheel( ( cwi+i+5 ) & 255 );
+			strip.pixel( i ).color( showColor );
+		}
+		strip.show();
+	}, 1000/delay);
+}
+
+function colorWheel( WheelPos ){
+	var r,g,b;
+	WheelPos = 255 - WheelPos;
+
+	if ( WheelPos < 85 ) {
+		r = 255 - WheelPos * 3;
+		g = 0;
+		b = WheelPos * 3;
+	} else if (WheelPos < 170) {
+		WheelPos -= 85;
+		r = 0;
+		g = WheelPos * 3;
+		b = 255 - WheelPos * 3;
+	} else {
+		WheelPos -= 170;
+		r = WheelPos * 3;
+		g = 255 - WheelPos * 3;
+		b = 0;
+	}
+	return "rgb(" + r +"," + g + "," + b + ")";
+}
+
+// ------------------------------------------------
+// OTHER FUNCTIONS
+// ------------------------------------------------
+
+function lerp(a,b,u) {
+	return (1-u) * a + u * b;
 };
 
 function isEven(n) {
@@ -199,6 +208,5 @@ io.on('connection', function (socket) {
 	console.log("Client Connected");
 	socket.on('clientPackage', function (data) {
 		clientData = data;
-		console.log(data);
 	});
 });
