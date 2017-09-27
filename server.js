@@ -13,12 +13,12 @@ console.log("Dirigenten Server Initialized");
 // ------------------------------------------------
 
 // Arduino
-var five = require("./node_modules/johnny-five"),
-board = new five.Board();
+var five = require("./node_modules/johnny-five");
+var board = new five.Board();
 var pixel = require("./node_modules/node-pixel");
 
 // Sockets
-var app = require('http').createServer(handler)
+var app = require('http').createServer(handler);
 var io = require('socket.io')(app);
 var fs = require('fs');
 var clientData = {average: 2000};
@@ -31,7 +31,6 @@ function handler(req, res) {
 			res.writeHead(500);
 			return res.end('Error loading index.html');
 		}
-
 		res.writeHead(200);
 		res.end(data);   
 	});
@@ -42,62 +41,24 @@ function handler(req, res) {
 // ------------------------------------------------
 
 var strip = null;
-
-var fps = 5;
+var fps = 10;
 
 board.on("ready", function() {
 
-	var led = new five.Led(8);
+	// Status LED
+	var led = new five.Led(13);
 	led.strobe(2000);
 
-	button = new five.Button(2);
-	button.on("down", function() {
-		console.log("click");
-	});
-
-	/*
+	// Proximity Sensor
 	var proximity = new five.Proximity({
-		controller: "MB1000",
+		controller: "MB1010",
 		pin: "A1"
 	});
 
 	proximity.on("data", function() {
-		console.log("cm: ", this.cm);
+		//console.log("cm: ", this.cm);
 	});
-	*/
-	
-	lerp = function(a,b,u) {
-		return (1-u) * a + u * b;
-	};
 
-	var c = [255,255,255];
-	
-	fade = function(start, end, duration) {
-		var interval = 10;
-		var steps = duration/interval;
-		var step_u = 1.0/steps;
-		var u = 0.0;
-		var theInterval = setInterval(function(){
-		
-		if (u >= 1.0){ clearInterval(theInterval) }
-		
-		var r = parseInt(lerp(start.r, end.r, u));
-		var g = parseInt(lerp(start.g, end.g, u));
-		var b = parseInt(lerp(start.b, end.b, u));
-		u += step_u;
-
-		if(r<0){r=0}
-		if(g<0){g=0}
-		if(b<0){b=0}
-
-		c[0] = r;
-		c[1] = g;
-		c[2] = b;
-
-		console.log("fade", c);
-
-	  }, interval);
-	};
 
 	var beatNumber = 0;
 	function stripBeat(ms){
@@ -119,10 +80,10 @@ board.on("ready", function() {
 
 	}
 
-	// setup the node-pixel strip.
+	// Setup the node-pixel strip.
 	strip = new pixel.Strip({
-		data: 6,
-		length: 20, // number of pixels in the strip.
+		data: 3,
+		length: 28, // number of pixels in the strip.
 		board: this,
 		controller: "FIRMATA"
 	});
@@ -130,12 +91,13 @@ board.on("ready", function() {
 	strip.on("ready", function() {
 		console.log("Strip ready, let's go");
 		for(var i = 0; i < strip.length; i++) {
-				strip.pixel( i ).color("red");
+				strip.pixel( i ).color("rgb(10,10,10)");
 			}
-			strip.show();
+		strip.pixel(10).color("red");
+		strip.show();
 		//dynamicRainbow(fps);
-		//stripBeat(1000);
-		//updateLights();
+		stripBeat(1000);
+		updateLights();
 	});
 
 	function updateLights(){
@@ -143,25 +105,14 @@ board.on("ready", function() {
 			for(var i = 0; i < strip.length; i++) {
 				strip.pixel( i ).color(c);
 			}
+			strip.pixel(10).color("blue");
 			strip.show();
 		}, 50)
 	}
 
-	
-
-	function isEven(n) {
-		return n % 2 == 0;
-	}
-
-	function isOdd(n) {
-		return Math.abs(n % 2) == 1;
-	}
-
 	function dynamicRainbow( delay ){
-		console.log( 'dynamicRainbow' );
-
 		var showColor;
-		var cwi = 0; // colour wheel index (current position on colour wheel)
+		var cwi = 0;
 		var foo = setInterval(function(){
 			if (++cwi > 255) {
 				cwi = 0;
@@ -175,8 +126,6 @@ board.on("ready", function() {
 		}, 1000/delay);
 	}
 
-	// Input a value 0 to 255 to get a color value.
-	// The colors are a transition r - g - b - back to r.
 	function colorWheel( WheelPos ){
 		var r,g,b;
 		WheelPos = 255 - WheelPos;
@@ -196,12 +145,51 @@ board.on("ready", function() {
 			g = 255 - WheelPos * 3;
 			b = 0;
 		}
-		// returns a string with the rgb value to be used as the parameter
 		return "rgb(" + r +"," + g + "," + b + ")";
 	}
 
 });
 
+function lerp(a,b,u) {
+	return (1-u) * a + u * b;
+};
+
+var c = [255,255,255];
+
+function fade(start, end, duration) {
+	var interval = 10;
+	var steps = duration/interval;
+	var step_u = 1.0/steps;
+	var u = 0.0;
+	var theInterval = setInterval(function(){
+	
+	if (u >= 1.0){ clearInterval(theInterval) }
+	
+	var r = parseInt(lerp(start.r, end.r, u));
+	var g = parseInt(lerp(start.g, end.g, u));
+	var b = parseInt(lerp(start.b, end.b, u));
+	u += step_u;
+
+	if(r<0){r=0}
+	if(g<0){g=0}
+	if(b<0){b=0}
+
+	c[0] = r;
+	c[1] = g;
+	c[2] = b;
+
+	console.log("fade", c);
+
+  }, interval);
+};
+
+function isEven(n) {
+	return n % 2 == 0;
+}
+
+function isOdd(n) {
+	return Math.abs(n % 2) == 1;
+}
 
 // ------------------------------------------------
 // SOCKET CONTROLLER
