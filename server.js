@@ -21,7 +21,10 @@ var pixel = require("node-pixel");
 var app = require('http').createServer(handler);
 var io = require('socket.io')(app);
 var fs = require('fs');
+
 var clientData = {average: 2000};
+var lastDataTimestamp = curTime();
+var handDetected = false;
 
 app.listen(8080);
 
@@ -37,17 +40,16 @@ function handler(req, res) {
 }
 
 // Songs array
-
 var songs = [
-	{path: "music/Blue_Danube_Waltz.mp3", color1: {r: 255, g: 0, b: 0}, color2: {r: 0, g: 255, b: 0}, baseBPM: 100},
-	{path: "music/Game_of_Thrones.mp3", color1: {r: 255, g: 0, b: 0}, color2: {r: 0, g: 255, b: 0}, baseBPM: 100},
-	{path: "music/Holberg_Suite.mp3", color1: {r: 255, g: 0, b: 0}, color2: {r: 0, g: 255, b: 0}, baseBPM: 100},
-	{path: "music/Jurassic_Park.mp3", color1: {r: 255, g: 0, b: 0}, color2: {r: 0, g: 255, b: 0}, baseBPM: 100},
-	{path: "music/Peer_Gynt_Suite_Morning.mp3", color1: {r: 255, g: 0, b: 0}, color2: {r: 0, g: 255, b: 0}, baseBPM: 100},
-	{path: "music/Pirates_of_the_Caribbean.mp3", color1: {r: 255, g: 0, b: 0}, color2: {r: 0, g: 255, b: 0}, baseBPM: 100},
-	{path: "music/Star_Wars_Theme.mp3", color1: {r: 255, g: 0, b: 0}, color2: {r: 0, g: 255, b: 0}, baseBPM: 100},
-	{path: "music/Waltz_No2.mp3", color1: {r: 255, g: 0, b: 0}, color2: {r: 0, g: 255, b: 0}, baseBPM: 100},
-	{path: "music/Waltz_of_the_Flowers.mp3", color1: {r: 255, g: 0, b: 0}, color2: {r: 0, g: 255, b: 0}, baseBPM: 100}
+    {path: "music/Blue_Danube_Waltz.mp3", color1: {r: 237, g: 239, b: 240}, color2: {r: 178, g: 211, b: 255}, baseBPM: 100},
+    {path: "music/Game_of_Thrones.mp3", color1: {r: 255, g: 70, b: 0}, color2: {r: 255, g: 130, b: 0}, baseBPM: 100},
+    {path: "music/Holberg_Suite.mp3", color1: {r: 130, g: 59, b: 196}, color2: {r: 106, g: 1, b: 254}, baseBPM: 100},
+    {path: "music/Jurassic_Park.mp3", color1: {r: 186, g: 195, b: 60}, color2: {r: 207, g: 80, b: 48}, baseBPM: 100},
+    {path: "music/Peer_Gynt_Suite_Morning.mp3", color1: {r: 185, g: 192, b: 236}, color2: {r: 0, g: 90, b: 149}, baseBPM: 100},
+    {path: "music/Pirates_of_the_Caribbean.mp3", color1: {r: 0, g: 139, b: 139}, color2: {r: 0, g: 255, b: 255}, baseBPM: 100},
+    {path: "music/Star_Wars_Theme.mp3", color1: {r: 255, g: 255, b: 255}, color2: {r: 49, g: 69, b: 162}, baseBPM: 100},
+    {path: "music/Waltz_No2.mp3", color1: {r: 0, g: 182, b: 149}, color2: {r: 0, g: 113, b: 149}, baseBPM: 100},
+    {path: "music/Waltz_of_the_Flowers.mp3", color1: {r: 214, g: 107, b: 149}, color2: {r: 112, g: 107, b: 149}, baseBPM: 100}
 ];
 
 var currentSong = null;
@@ -59,6 +61,11 @@ var currentSong = null;
 var strip = null;
 var stripColor = [255,255,255];
 var beatNumber = 0;
+var rangerLimit = -1;
+
+
+// 0 = Nothing | 1 = Instrument Warmup | 2 = Dirigent starting | 3 = Dirigent | 4 = Applause
+var state = 0;
 
 board.on("ready", function() {
 
@@ -87,19 +94,17 @@ board.on("ready", function() {
 	// Proximity Sensor
 	proximity.on("data", function() {
 		clientData.ranger = this.cm;
+		if(rangerLimit == -1){
+			rangerLimit = this.cm;
+		}
 	});
 
 	// LED Strips
 	strip.on("ready", function() {
 		console.log("SERVER: LED Strip ready");
 
-		for(var i = 0; i < strip.length; i++) {
-			strip.pixel( i ).color("rgb(10,10,10)");
-		}
-		strip.show();
-
-		//dynamicRainbow(10); // FPS Argument
-		stripBeat(1000);
+		//dynamicRainbow(10); // 10 FPS
+		//stripBeat(1000);
 		updateLights();
 	});
 
@@ -222,6 +227,10 @@ function isOdd(n) {
 	return Math.abs(n % 2) == 1;
 }
 
+function curTime(){
+	return Math.floor(Date.now() / 1000)
+}
+
 // ------------------------------------------------
 // SOCKET CONTROLLER
 // ------------------------------------------------
@@ -230,11 +239,57 @@ io.on('connection', function (socket) {
 	console.log("Client Connected");
 
 	// Set starting song
-	currentSong = songs[Math.floor(Math.random()*songs.length)];
-	socket.emit('changeAudio', currentSong.path);
+	socket.emit('changeAudio', "sounds/ambience.mp3");
+
+	setState(1);
 
 	// Get info from client
 	socket.on('clientPackage', function (data) {
 		clientData = data;
+		lastDataTimestamp = curTime();
+		handDetected = true;
 	});
+
+	function setState(s){
+		state = s;
+		socket.emit('stateUpdate', s);
+		console.log("SERVER: State changed to", s);
+	}
+
+	// Situation checker
+	setInterval(function(){
+
+		// Make hand not detected if no informationw as detected for X seconds
+		if(handDetected == true && lastDataTimestamp + 5 < curTime()){
+			handDetected = false;
+		}
+
+		// If no hand motion has been detected for X seconds
+		if(state == 3 && curTime() > lastDataTimestamp + 10){
+			console.log("applause");
+		}
+
+		if(state == 1 && clientData.ranger < rangerLimit){
+			setState(2);
+			socket.emit('fadeStopAudio');
+			fadeStripColor(
+				{r: stripColor[0], g: stripColor[1], b: stripColor[2]},
+				{r: 25, g: 25, b: 25},
+			1500);
+		}
+
+		// Detect if hand was over leap to start song
+		if(state == 2 && handDetected){
+			setState(3);
+			currentSong = songs[Math.floor(Math.random()*songs.length)];
+			socket.emit('fadeStartAudio', currentSong.path);
+			stripBeat(1000);
+			updateLights();
+		}
+
+		console.log("state", state);
+
+	}, 1000)
+	
+
 });

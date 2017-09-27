@@ -17,7 +17,7 @@
 		<!-- HTML Audio Output -->
 		<p>Pitch: <i id="debugPitch"></i></p>
 		<p>Volume: <i id="debugVolume"></i></p>
-		<audio id="audioHTMLPlayer1" width="320" height="176" controls>
+		<audio id="audioHTMLPlayer1" width="320" height="176" controls autoplay="true" loop="true">
 			<source src="" type="audio/mp3">
 			Your browser does not support HTML5 audio.
 		</audio>
@@ -38,16 +38,34 @@
 			//
 			// Socket Controller
 			//
+			var state = 0;
+			// 0 = Nothing | 1 = Instrument Warmup | 2 = Dirigent starting | 3 = Dirigent | 4 = Applause
+
 			var socket = io('http://localhost:8080');
 			socket.on('changeAudio', function (data) {
 				setAudio(data);
+			});
+
+			socket.on('fadeStopAudio', function(){
+				$(audioPlayer).animate({volume: 0.0}, 2000, function(){
+					$(audioPlayer).stop();
+				});
+			}),
+
+			socket.on('fadeStartAudio', function (data) {
+				setAudio(data);
+				$(audioPlayer).animate({volume: 1.0, playbackRate: 1.0}, 200);
+			});
+
+			socket.on('stateUpdate', function (data) {
+				state = data;
 			});
 
 
 			//
 			// Sample Controller
 			//
-			var positionSamples = [550];
+			var positionSamples = [];
 			var sampleCount = 5;
 
 			var volumeSamples = [1];
@@ -111,6 +129,10 @@
 
 			function calculatedPitch(){
 
+				if(positionSamples.length < sampleCount){
+					return 1.0;
+				}
+
 				var baseBPM = 100;
 				var pitch = ((calculatedBPM() * 100)/ baseBPM) / 100;
 
@@ -134,7 +156,10 @@
 
 			function setAudio(path){
 				audioPlayer.src = path;
+				audioPlayer.volume = 1.0;
+				pitch = 1.0;
 				audioPlayer.load();
+				audioPlayer.play();
 			}
 
 			//
@@ -198,16 +223,18 @@
 					lastX = frame.hands[0].palmPosition[0];
 					lastZ = frame.hands[0].palmPosition[1];
 
-					// Change volume smoothly
-					if(!changingVol){
-						changingVol = true;
-						$(audioPlayer).animate({volume: calculatedVolume()}, 100, function(){
-							changingVol = false;
-						})
+					if(state == 3){
+						// Change volume smoothly
+						if(!changingVol){
+							changingVol = true;
+							$(audioPlayer).animate({volume: calculatedVolume()}, 100, function(){
+								changingVol = false;
+							})
+						}
+						
+						// Set pitch on player
+						audioPlayer.playbackRate = calculatedPitch();
 					}
-					
-					// Set pitch on player
-					audioPlayer.playbackRate = calculatedPitch();
 
 					// Send data to server
 					socket.emit('clientPackage', { 
