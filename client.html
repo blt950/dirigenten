@@ -18,7 +18,7 @@
 		<p>Pitch: <i id="debugPitch"></i></p>
 		<p>Volume: <i id="debugVolume"></i></p>
 		<audio id="audioHTMLPlayer1" width="320" height="176" controls>
-			<source src="music/Jurassic_Park.mp3" type="audio/mp3">
+			<source src="" type="audio/mp3">
 			Your browser does not support HTML5 audio.
 		</audio>
 		<hr>
@@ -39,7 +39,9 @@
 			// Socket Controller
 			//
 			var socket = io('http://localhost:8080');
-
+			socket.on('changeAudio', function (data) {
+				setAudio(data);
+			});
 
 
 			//
@@ -130,6 +132,10 @@
 
 			var audioPlayer = $('#audioHTMLPlayer1')[0];
 
+			function setAudio(path){
+				audioPlayer.src = path;
+				audioPlayer.load();
+			}
 
 			//
 			// Calculations

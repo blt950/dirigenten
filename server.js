@@ -36,6 +36,22 @@ function handler(req, res) {
 	});
 }
 
+// Songs array
+
+var songs = [
+	{path: "music/Blue_Danube_Waltz.mp3", color1: {r: 255, g: 0, b: 0}, color2: {r: 0, g: 255, b: 0}, baseBPM: 100},
+	{path: "music/Game_of_Thrones.mp3", color1: {r: 255, g: 0, b: 0}, color2: {r: 0, g: 255, b: 0}, baseBPM: 100},
+	{path: "music/Holberg_Suite.mp3", color1: {r: 255, g: 0, b: 0}, color2: {r: 0, g: 255, b: 0}, baseBPM: 100},
+	{path: "music/Jurassic_Park.mp3", color1: {r: 255, g: 0, b: 0}, color2: {r: 0, g: 255, b: 0}, baseBPM: 100},
+	{path: "music/Peer_Gynt_Suite_Morning.mp3", color1: {r: 255, g: 0, b: 0}, color2: {r: 0, g: 255, b: 0}, baseBPM: 100},
+	{path: "music/Pirates_of_the_Caribbean.mp3", color1: {r: 255, g: 0, b: 0}, color2: {r: 0, g: 255, b: 0}, baseBPM: 100},
+	{path: "music/Star_Wars_Theme.mp3", color1: {r: 255, g: 0, b: 0}, color2: {r: 0, g: 255, b: 0}, baseBPM: 100},
+	{path: "music/Waltz_No2.mp3", color1: {r: 255, g: 0, b: 0}, color2: {r: 0, g: 255, b: 0}, baseBPM: 100},
+	{path: "music/Waltz_of_the_Flowers.mp3", color1: {r: 255, g: 0, b: 0}, color2: {r: 0, g: 255, b: 0}, baseBPM: 100}
+];
+
+var currentSong = null;
+
 // ------------------------------------------------
 // ARDUINO CONTROLLER
 // ------------------------------------------------
@@ -82,9 +98,9 @@ board.on("ready", function() {
 		}
 		strip.show();
 
-		dynamicRainbow(10); // FPS Argument
-		//stripBeat(1000);
-		//updateLights();
+		//dynamicRainbow(10); // FPS Argument
+		stripBeat(1000);
+		updateLights();
 	});
 
 });
@@ -124,9 +140,15 @@ function stripBeat(ms){
 	setTimeout(function(){
 
 		if(isEven(beatNumber)){
-			fadeStripColor({r: 255, g: 0, b: 0}, {r: 0, g: 255, b: 0}, 250);
+			fadeStripColor(
+				{r: currentSong.color1.r, g: currentSong.color1.g, b: currentSong.color1.b},
+				{r: currentSong.color2.r, g: currentSong.color2.g, b: currentSong.color2.b},
+			250);
 		} else if(isOdd(beatNumber)){
-			fadeStripColor({r: 0, g: 255, b: 0}, {r: 255, g: 0, b: 0}, 250);
+			fadeStripColor(
+				{r: currentSong.color2.r, g: currentSong.color2.g, b: currentSong.color2.b},
+				{r: currentSong.color1.r, g: currentSong.color1.g, b: currentSong.color1.b},
+			250);
 		}
 
 		stripBeat(ms);
@@ -206,6 +228,12 @@ function isOdd(n) {
 
 io.on('connection', function (socket) {
 	console.log("Client Connected");
+
+	// Set starting song
+	currentSong = songs[Math.floor(Math.random()*songs.length)];
+	socket.emit('changeAudio', currentSong.path);
+
+	// Get info from client
 	socket.on('clientPackage', function (data) {
 		clientData = data;
 	});
