@@ -25,7 +25,6 @@ var fs = require('fs');
 var clientData = {average: 2000};
 var lastDataTimestamp = curTime();
 var handDetected = false;
-var reseting = false;
 
 app.listen(8080);
 
@@ -168,6 +167,7 @@ function stripBeat(ms){
 
 function updateLights(delay){
 	var updateLightsTimer = setInterval(function(){
+
 		for(var i = 0; i < strip.length; i++) {
 			strip.pixel( i ).color(stripColor);
 		}
@@ -276,24 +276,30 @@ io.on('connection', function (socket) {
 	}
 
 	// Situation checker each second
+	var blockState = false;
 	setInterval(function(){
 
 		console.log(stripColor);
 
 		// Make hand not detected if no informationw as detected for X seconds
-		if(handDetected == true && lastDataTimestamp + 5 < curTime()){
+		if(handDetected == true && lastDataTimestamp + 1 < curTime()){
 			handDetected = false;
 		}
 
 		// If instrument warmup and someone is close to installation
-		if(state == 1 && clientData.ranger < rangerLimit){
+		if(state == 1 && clientData.ranger < rangerLimit && !blockState){
 			setState(2);
+			blockState = true;
 			socket.emit('fadeStopAudio');
 			updateLights(10);
 			fadeStripColor(
 				{r: stripColor[0], g: stripColor[1], b: stripColor[2]},
 				{r: 25, g: 25, b: 25},
 			1500);
+			setTimeout(function(){
+				blockState = false;
+			}, 1500);
+
 		}
 
 		// Detect if hand was over leap to start song
@@ -305,24 +311,23 @@ io.on('connection', function (socket) {
 		}
 
 		// Detect if hand is removed
-		if(state == 3 && !handDetected && lastDataTimestamp + 3 < curTime()){
+		if(state == 3 && !handDetected && lastDataTimestamp + 1 < curTime()){
 			setState(4);
 			console.log("applause");
 			socket.emit('fadeStopAudio');
 			setTimeout(function(){
-				socket.emit('fadeStartAudio', {path: currentSong.path, bpm: 100});
+				socket.emit('fadeStartAudio', {path: "sounds/applause.mp3", bpm: 100});
 			}, 1500)
 		}
 
 		// After applause set back to instrument warmup (state 1)
-		if(state == 4 && !reseting){
-			reseting = true;
+		if(state == 4 && !blockState){
+			blockState = true;
 			setTimeout(function(){
 				setState(1);
-				reseting = false;
 				dynamicRainbow(10); // 10 FPS
 				socket.emit('changeAudio', "sounds/ambience.mp3");
-			}, 10000)
+			}, 12000)
 		}
 
 		console.log("state", state);
