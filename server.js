@@ -25,6 +25,7 @@ var fs = require('fs');
 var clientData = {average: 2000};
 var lastDataTimestamp = curTime();
 var handDetected = false;
+var blockState = false;
 
 app.listen(8080);
 
@@ -176,7 +177,7 @@ function updateLights(delay){
 		}
 		strip.show();
 
-		if(state < 2){
+		if(state != 2 && state != 3 && !blockState){
 			clearInterval(updateLightsTimer);
 		}
 
@@ -279,7 +280,7 @@ io.on('connection', function (socket) {
 	}
 
 	// Situation checker each second
-	var blockState = false;
+	
 	setInterval(function(){
 
 		// Make hand not detected if no informationw as detected for X seconds
@@ -307,15 +308,22 @@ io.on('connection', function (socket) {
 		}
 
 		// Detect if hand was over leap to start song
-		if(state == 2 && handDetected){
+		if(state == 2 && handDetected && !blockState){
 			setState(3);
+			var lastSong = currentSong;
 			currentSong = songs[Math.floor(Math.random()*songs.length)];
+
+			// Don't make same song repeat directly after
+			while(currentSong == lastSong){
+				currentSong = songs[Math.floor(Math.random()*songs.length)];
+			}
+
 			socket.emit('fadeStartAudio', {path: currentSong.path, bpm: currentSong.baseBPM});
 			stripBeat(2000);
 		}
 
 		// Reset to state 1 if person out of range
-		if(state == 2 && clientData.ranger >= rangerLimit){
+		if(state == 2 && clientData.ranger >= rangerLimit && !blockState){
 			setState(1);
 			dynamicRainbow(FPS); // 10 FPS
 			socket.emit('changeAudio', "sounds/ambience.mp3");
