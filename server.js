@@ -65,6 +65,9 @@ var beatNumber = 0;
 var rangerLimit = -1;
 var FPS = 10;
 
+var rangerSamples = [600,600,600,600,600, 600, 600, 600, 600, 600];
+var rangerSampleCount = 10;
+
 // 0 = Nothing | 1 = Instrument Warmup | 2 = Dirigent starting | 3 = Dirigent | 4 = Applause
 var state = 0;
 
@@ -99,6 +102,12 @@ board.on("ready", function() {
 			rangerLimit = this.cm;
 			console.log("SERVER: Ranger Limit:", this.cm);
 		}
+		
+		rangerSamples.push(this.cm);
+		if(rangerSamples.length > rangerSampleCount){
+			rangerSamples.shift()
+		}
+
 	});
 
 	// LED Strips
@@ -254,6 +263,17 @@ function curTime(){
 	return Math.floor(Date.now() / 1000)
 }
 
+function getRange(){
+
+	var avg = 0;
+
+	for (i = 0; i < rangerSamples.length; i++){
+		avg = avg + rangerSamples[i];
+	}
+
+	return avg/rangerSamples.length;
+}
+
 // ------------------------------------------------
 // SOCKET CONTROLLER
 // ------------------------------------------------
@@ -289,7 +309,7 @@ io.on('connection', function (socket) {
 		}
 
 		// If instrument warmup and someone is close to installation
-		if(state == 1 && clientData.ranger < rangerLimit && !blockState){
+		if(state == 1 && getRange() < rangerLimit && !blockState){
 			setState(2);
 			blockState = true;
 			socket.emit('fadeStopAudio');
@@ -323,7 +343,7 @@ io.on('connection', function (socket) {
 		}
 
 		// Reset to state 1 if person out of range
-		if(state == 2 && clientData.ranger >= rangerLimit && !blockState){
+		if(state == 2 && getRange() >= rangerLimit && !blockState){
 			setState(1);
 			dynamicRainbow(FPS); // 10 FPS
 			socket.emit('changeAudio', "sounds/ambience.mp3");
@@ -343,7 +363,7 @@ io.on('connection', function (socket) {
 			blockState = true;
 			setTimeout(function(){
 
-				if(clientData.ranger < rangerLimit){
+				if(getRange() < rangerLimit){
 					setState(2);
 					fadeStripColor(
 						{r: stripColor[0], g: stripColor[1], b: stripColor[2]},
