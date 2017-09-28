@@ -62,7 +62,7 @@ var strip = null;
 var stripColor = [255,255,255];
 var beatNumber = 0;
 var rangerLimit = -1;
-
+var FPS = 10;
 
 // 0 = Nothing | 1 = Instrument Warmup | 2 = Dirigent starting | 3 = Dirigent | 4 = Applause
 var state = 0;
@@ -102,7 +102,7 @@ board.on("ready", function() {
 	// LED Strips
 	strip.on("ready", function() {
 		console.log("SERVER: LED Strip ready");
-		dynamicRainbow(10); // 10 FPS
+		dynamicRainbow(FPS); // 10 FPS
 	});
 
 });
@@ -291,7 +291,7 @@ io.on('connection', function (socket) {
 			setState(2);
 			blockState = true;
 			socket.emit('fadeStopAudio');
-			updateLights(10);
+			updateLights(FPS);
 			fadeStripColor(
 				{r: stripColor[0], g: stripColor[1], b: stripColor[2]},
 				{r: 25, g: 25, b: 25},
@@ -325,7 +325,7 @@ io.on('connection', function (socket) {
 			blockState = true;
 			setTimeout(function(){
 				setState(1);
-				dynamicRainbow(10); // 10 FPS
+				dynamicRainbow(FPS); // 10 FPS
 				socket.emit('changeAudio', "sounds/ambience.mp3");
 			}, 12000)
 		}
