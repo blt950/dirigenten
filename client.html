@@ -56,6 +56,7 @@
 			socket.on('fadeStartAudio', function (data) {
 				setAudio(data.path);
 				baseBPM = data.bpm;
+				positionSamples = [data.bpm*10.5, data.bpm*10.5, data.bpm*10.5, data.bpm*10.5, data.bpm*10.5];
 				$(audioPlayer).animate({volume: 1.0, playbackRate: 1.0}, 200);
 			});
 
@@ -67,7 +68,7 @@
 			//
 			// Sample Controller
 			//
-			var positionSamples = [];
+			var positionSamples = [500,500,500,500,500];
 			var sampleCount = 5;
 
 			var volumeSamples = [1];
@@ -78,9 +79,11 @@
 			// Fastest = 100ms, Slowest = 1000ms
 			
 			function addSample(time){
-				positionSamples.push(time);
-				if(positionSamples.length > sampleCount){
-					positionSamples.shift()
+				if(time){ // Dont add if its zero
+					positionSamples.push(time);
+					if(positionSamples.length > sampleCount){
+						positionSamples.shift()
+					}
 				}
 			}
 
@@ -143,6 +146,8 @@
 				} else if(pitch < minimumPitch){
 					pitch = minimumPitch;
 				}
+
+				console.info(positionSamples);
 
 				return pitch;
 
