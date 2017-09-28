@@ -177,8 +177,6 @@ function updateLights(delay){
 			clearInterval(updateLightsTimer);
 		}
 
-		console.log("updateLights");
-
 	}, 1000/delay)
 }
 
@@ -198,8 +196,6 @@ function dynamicRainbow( delay ){
 			stripColor = showColor;
 		}
 		strip.show();
-
-		console.log("dynamicRainbow");
 
 		if(state != 1){
 			clearInterval(rainbowTimer);
@@ -279,8 +275,6 @@ io.on('connection', function (socket) {
 	var blockState = false;
 	setInterval(function(){
 
-		console.log(stripColor);
-
 		// Make hand not detected if no informationw as detected for X seconds
 		if(handDetected == true && lastDataTimestamp + 1 < curTime()){
 			handDetected = false;
@@ -313,7 +307,6 @@ io.on('connection', function (socket) {
 		// Detect if hand is removed
 		if(state == 3 && !handDetected && lastDataTimestamp + 1 < curTime()){
 			setState(4);
-			console.log("applause");
 			socket.emit('fadeStopAudio');
 			setTimeout(function(){
 				socket.emit('fadeStartAudio', {path: "sounds/applause.mp3", bpm: 100});
@@ -325,12 +318,11 @@ io.on('connection', function (socket) {
 			blockState = true;
 			setTimeout(function(){
 				setState(1);
+				blockState = false;
 				dynamicRainbow(FPS); // 10 FPS
 				socket.emit('changeAudio', "sounds/ambience.mp3");
 			}, 12000)
 		}
-
-		console.log("state", state);
 
 	}, 1000)
 	
