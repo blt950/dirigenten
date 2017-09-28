@@ -72,7 +72,7 @@ board.on("ready", function() {
 	// ============= SETUP =============
 	
 	// LED
-	var led = new five.Led(13); led.strobe(2000);
+	var led = new five.Led(13); led.strobe(1000);
 
 	// Strip
 	strip = new pixel.Strip({
@@ -96,6 +96,7 @@ board.on("ready", function() {
 		clientData.ranger = this.cm;
 		if(rangerLimit == -1){
 			rangerLimit = this.cm;
+			console.log("SERVER: Ranger Limit:", this.cm);
 		}
 	});
 
@@ -160,6 +161,8 @@ function stripBeat(ms){
 			stripBeat(ms);
 		}
 
+		console.log("stripBeat");
+
 		beatNumber = beatNumber + 1;
 
 	}, clientData.average);
@@ -176,6 +179,8 @@ function updateLights(delay){
 		if(state < 2){
 			clearInterval(updateLightsTimer);
 		}
+
+		console.log("updateLights");
 
 	}, 1000/delay)
 }
@@ -196,6 +201,8 @@ function dynamicRainbow( delay ){
 			stripColor = showColor;
 		}
 		strip.show();
+
+		console.log("DynamicRain");
 
 		if(state != 1){
 			clearInterval(rainbowTimer);
@@ -304,6 +311,13 @@ io.on('connection', function (socket) {
 			stripBeat(2000);
 		}
 
+		// Reset to state 1 if person out of range
+		if(state == 2 && clientData.ranger >= rangerLimit){
+			setState(1);
+			dynamicRainbow(FPS); // 10 FPS
+			socket.emit('changeAudio', "sounds/ambience.mp3");
+		}
+
 		// Detect if hand is removed
 		if(state == 3 && !handDetected && lastDataTimestamp + 1 < curTime()){
 			setState(4);
@@ -317,12 +331,28 @@ io.on('connection', function (socket) {
 		if(state == 4 && !blockState){
 			blockState = true;
 			setTimeout(function(){
-				setState(1);
-				blockState = false;
-				dynamicRainbow(FPS); // 10 FPS
-				socket.emit('changeAudio', "sounds/ambience.mp3");
+
+				if(clientData.ranger < rangerLimit){
+					setState(2);
+					fadeStripColor(
+						{r: stripColor[0], g: stripColor[1], b: stripColor[2]},
+						{r: 25, g: 25, b: 25},
+					1500);
+					setTimeout(function(){
+						blockState = false;
+					}, 1500);
+
+				} else {
+					setState(1);
+					blockState = false;
+					dynamicRainbow(FPS); // 10 FPS
+					socket.emit('changeAudio', "sounds/ambience.mp3");
+				}
+				
 			}, 12000)
 		}
+
+		console.log("STATE NOW", state, stripColor)
 
 	}, 1000)
 	

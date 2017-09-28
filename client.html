@@ -156,10 +156,17 @@
 
 			var audioPlayer = $('#audioHTMLPlayer1')[0];
 
-			function setAudio(path){
+			function setAudio(path, loop){
 				audioPlayer.src = path;
 				audioPlayer.volume = 1.0;
 				pitch = 1.0;
+
+				if(path == "sounds/ambience.mp3"){
+					audioPlayer.loop = true;
+				} else {
+					audioPlayer.loop = false;
+				}
+
 				audioPlayer.load();
 				audioPlayer.play();
 			}
