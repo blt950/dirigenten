@@ -39,6 +39,7 @@
 			// Socket Controller
 			//
 			var state = 0;
+			var baseBPM = 100;
 			// 0 = Nothing | 1 = Instrument Warmup | 2 = Dirigent starting | 3 = Dirigent | 4 = Applause
 
 			var socket = io('http://localhost:8080');
@@ -53,7 +54,8 @@
 			}),
 
 			socket.on('fadeStartAudio', function (data) {
-				setAudio(data);
+				setAudio(data.path);
+				baseBPM = data.bpm;
 				$(audioPlayer).animate({volume: 1.0, playbackRate: 1.0}, 200);
 			});
 
@@ -133,7 +135,7 @@
 					return 1.0;
 				}
 
-				var baseBPM = 100;
+				
 				var pitch = ((calculatedBPM() * 100)/ baseBPM) / 100;
 
 				if(pitch > maximumPitch){
