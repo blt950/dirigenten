@@ -292,6 +292,9 @@ io.on('connection', function (socket) {
 			setState(2);
 			blockState = true;
 			socket.emit('fadeStopAudio');
+			setTimeout(function(){
+				socket.emit('fadeStartAudio', {path: "sounds/ehem.mp3", bpm: 100});
+			}, 2000)
 			updateLights(FPS);
 			fadeStripColor(
 				{r: stripColor[0], g: stripColor[1], b: stripColor[2]},
