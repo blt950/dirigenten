@@ -27,6 +27,8 @@ var lastDataTimestamp = curTime();
 var handDetected = false;
 var blockState = false;
 
+var singelton = false;
+
 app.listen(8080);
 
 function handler(req, res) {
@@ -179,20 +181,23 @@ function stripBeat(ms){
 }
 
 function updateLights(delay){
-	var updateLightsTimer = setInterval(function(){
+	if(!singelton){
+		var updateLightsTimer = setInterval(function(){
 
-		for(var i = 0; i < strip.length; i++) {
-			strip.pixel( i ).color(stripColor);
-		}
-		strip.show();
+			for(var i = 0; i < strip.length; i++) {
+				strip.pixel( i ).color(stripColor);
+			}
+			strip.show();
 
-		if(state != 2 && state != 3 && !blockState){
-			clearInterval(updateLightsTimer);
-		}
+			if(state != 2 && state != 3 && !blockState){
+				clearInterval(updateLightsTimer);
+				singelton = false;
+			}
 
-		console.log("updateLights");
+			console.log("updateLights");
 
-	}, 1000/delay)
+		}, 1000/delay)
+	}
 }
 
 // Rainbow
