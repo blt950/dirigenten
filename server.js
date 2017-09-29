@@ -101,7 +101,7 @@ board.on("ready", function() {
 	proximity.on("data", function() {
 		clientData.ranger = this.cm;
 		if(rangerLimit == -1){
-			rangerLimit = this.cm;
+			rangerLimit = 100;
 			console.log("SERVER: Ranger Limit:", this.cm);
 		}
 		
