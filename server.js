@@ -51,7 +51,7 @@ var songs = [
     {path: "music/Peer_Gynt_Suite_Morning.mp3", color1: {r: 185, g: 192, b: 236}, color2: {r: 0, g: 90, b: 149}, baseBPM: 72},
     {path: "music/Pirates_of_the_Caribbean.mp3", color1: {r: 169, g: 54, b: 103}, color2: {r: 0, g: 255, b: 255}, baseBPM: 115},
     {path: "music/Star_Wars_Theme.mp3", color1: {r: 255, g: 255, b: 255}, color2: {r: 49, g: 69, b: 162}, baseBPM: 90},
-    {path: "music/Waltz_No2.mp3", color1: {r: 0, g: 182, b: 149}, color2: {r: 0, g: 113, b: 149}, baseBPM: 75},
+    {path: "music/Waltz_No2.mp3", color1: {r: 10, g: 255, b: 149}, color2: {r: 0, g: 113, b: 149}, baseBPM: 75},
     {path: "music/Waltz_of_the_Flowers.mp3", color1: {r: 214, g: 107, b: 149}, color2: {r: 112, g: 107, b: 149}, baseBPM: 75}
 ];
 
