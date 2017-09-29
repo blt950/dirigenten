@@ -44,7 +44,7 @@ function handler(req, res) {
 
 // Songs array
 var songs = [
-    {path: "music/Blue_Danube_Waltz.mp3", color1: {r: 237, g: 239, b: 240}, color2: {r: 178, g: 211, b: 255}, baseBPM: 80},
+    {path: "music/Blue_Danube_Waltz.mp3", color1: {r: 137, g: 139, b: 240}, color2: {r: 178, g: 150, b: 255}, baseBPM: 80},
     {path: "music/Game_of_Thrones.mp3", color1: {r: 255, g: 70, b: 0}, color2: {r: 255, g: 130, b: 0}, baseBPM: 70},
     {path: "music/Holberg_Suite.mp3", color1: {r: 130, g: 59, b: 196}, color2: {r: 106, g: 1, b: 254}, baseBPM: 135},
     {path: "music/Jurassic_Park.mp3", color1: {r: 186, g: 195, b: 60}, color2: {r: 207, g: 80, b: 48}, baseBPM: 95},
